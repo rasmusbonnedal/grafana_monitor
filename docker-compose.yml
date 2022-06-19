@@ -1,0 +1,46 @@
+version: "3"
+
+networks:
+  grafnet:
+    name: grafnet
+    external: false
+    driver: bridge
+
+services:
+# My grafana service 
+  grafana:
+    build:
+      context: ./grafana
+    container_name: grafana
+    networks:
+      - grafnet
+    ports:
+      - 9000:3000
+    volumes:
+       - ./grafana-data:/var/lib/grafana
+#      - grafana-data:/var/lib/grafana
+  mariadb:
+    build:
+      context: ./mariadb
+    container_name: mariadb
+    networks:
+      - grafnet
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - ./mariadb/data:/docker-entrypoint-initdb.d
+      - ./mariadb-data:/var/lib/mysql
+    ports:
+      - 3306:3306
+  temp-producer:
+    build:
+      context: ./temp-producer
+    container_name: temp-producer
+    networks:
+      - grafnet    
+
+# Explicitly define the persistent volume for your data storage
+volumes:
+  grafana-data:
+    external: true
